@@ -1,0 +1,1048 @@
+<link rel="manifest" href="/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <meta name="format-detection" content="telephone=no">
+    <title>❤️ 要一直在逸琦 ❤️</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #ffc2d1 0%, #ffafcc 25%, #f4acb7 50%, #ffe5ec 75%, #ffcad4 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 25s ease infinite;
+            background-attachment: fixed;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='1' fill='%23ffffff' opacity='0.5'/%3E%3C/svg%3E");
+            background-size: 15px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* 验证模块 */
+        .verify-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        .verify-box {
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 40px rgba(255, 143, 171, 0.3);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .verify-box h1 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px #ff8fab;
+            color: #fff;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: #ff8fab;
+            text-shadow: 0 0 5px rgba(255, 143, 171, 0.5);
+        }
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-group input::placeholder {
+            color: #e0e0e0;
+        }
+        #verify-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #ffafcc, #f4acb7);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(255, 143, 171, 0.4);
+        }
+        #verify-btn:hover {
+            background: linear-gradient(90deg, #f4acb7, #ff8fab);
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 143, 171, 0.5);
+        }
+        #verify-tip {
+            margin-top: 20px;
+            font-size: 1rem;
+            min-height: 20px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        /* 主页模块 */
+        .home-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            padding-bottom: 50px;
+        }
+        .header {
+            text-align: center;
+            padding: 50px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            margin: 0 20px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(255, 143, 171, 0.2);
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff8fab;
+            color: #fff;
+        }
+        .days {
+            font-size: 1.5rem;
+            color: #ff8fab;
+            text-shadow: 0 0 10px rgba(255, 143, 171, 0.6);
+        }
+        /* 照片轮播 */
+        .photo-carousel {
+            max-width: 800px;
+            margin: 30px auto;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(255, 143, 171, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .carousel-inner {
+            display: flex;
+            width: 100%;
+            height: 450px;
+            transition: transform 0.8s ease;
+        }
+        .carousel-item {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+        }
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .carousel-btn:hover {
+            background: rgba(255, 143, 171, 0.8);
+            box-shadow: 0 0 15px #ff8fab;
+        }
+        .prev-btn { left: 20px; }
+        .next-btn { right: 20px; }
+        /* 表白文案 */
+        .content {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(255, 143, 171, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .content p {
+            font-size: 1.2rem;
+            line-height: 2;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        /* 留言板 */
+        .message-board {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(255, 143, 171, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .message-board h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ff8fab;
+            text-shadow: 0 0 15px #ff8fab;
+        }
+        .message-input {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .message-input input, .message-input textarea {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .message-input textarea {
+            height: 120px;
+            resize: none;
+        }
+        /* 文件上传 */
+        .file-upload {
+            padding: 10px;
+            border: 2px dashed #ff8fab;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: rgba(255, 143, 171, 0.1);
+        }
+        .file-upload:hover {
+            background: rgba(255, 143, 171, 0.2);
+            border-color: #f4acb7;
+        }
+        .file-upload input {
+            display: none;
+        }
+        .file-upload-text {
+            color: #ff8fab;
+            font-size: 0.9rem;
+            text-shadow: 0 0 5px rgba(255, 143, 171, 0.5);
+        }
+        .upload-tips {
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            margin-top: 5px;
+        }
+        .preview-container {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .preview-item {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .preview-item img, .preview-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 143, 171, 0.8);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .preview-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 12px;
+        }
+        .message-input button {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #ffafcc, #f4acb7);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(255, 143, 171, 0.4);
+        }
+        .message-input button:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .message-input button .loading {
+            display: none;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .message-input button.loading .loading {
+            display: inline-block;
+        }
+        .message-list {
+            max-height: 500px;
+            overflow-y: auto;
+            gap: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message-item {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 5px solid #ff8fab;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .message-item .name {
+            font-weight: bold;
+            color: #ff8fab;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(255, 143, 171, 0.5);
+        }
+        .message-item .time {
+            font-size: 0.8rem;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+        .message-item .content {
+            margin-bottom: 10px;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            border: none;
+        }
+        /* 留言文件预览 */
+        .message-file-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .message-file-item {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .message-file-item img, .message-file-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        /* 动态爱心 */
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #ffafcc, #f4acb7);
+            transform: rotate(45deg);
+            animation: float 6s ease-in-out forwards;
+            opacity: 0;
+            box-shadow: 0 0 10px #ff8fab;
+        }
+        .heart::before, .heart::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #ffafcc, #f4acb7);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff8fab;
+        }
+        .heart::before { top: -10px; left: 0; }
+        .heart::after { top: 0; left: -10px; }
+        @keyframes float {
+            0% { transform: rotate(45deg) translateY(0); opacity: 1; }
+            100% { transform: rotate(45deg) translateY(-200px); opacity: 0; }
+        }
+        /* 音乐控件 */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            display: flex;
+            gap: 10px;
+        }
+        .music-control:hover {
+            opacity: 1;
+        }
+        .music-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #ffafcc, #f4acb7);
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 143, 171, 0.4);
+        }
+        .music-btn:hover {
+            background: linear-gradient(90deg, #f4acb7, #ff8fab);
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 143, 171, 0.5);
+        }
+        #bgmAudio {
+            display: none;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .verify-box { padding: 30px; }
+            .header h1 { font-size: 2rem; }
+            .photo-carousel { margin: 30px 15px; }
+            .carousel-inner { height: 250px; }
+            .content, .message-board { padding: 20px; margin: 30px 15px; }
+            .music-control {
+                bottom: 20px;
+                right: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .music-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            .message-file-item {
+                max-width: 150px;
+                max-height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mask"></div>
+
+    <!-- 验证模块 -->
+    <div class="verify-container" id="verifyContainer">
+        <div class="verify-box">
+            <h1>💖 对臭宝的突击提问 💖</h1>
+            <div class="input-group">
+                <label>哪天认识哒：</label>
+                <input type="date" id="meetDate" required>
+            </div>
+            <div class="input-group">
+                <label>恋爱日又是哪天？：</label>
+                <input type="date" id="loveDate" required>
+            </div>
+            <button id="verify-btn" onclick="checkCode()">解锁我们的回忆</button>
+            <div id="verify-tip"></div>
+        </div>
+    </div>
+
+    <!-- 主页模块 -->
+    <div class="home-container" id="homeContainer">
+        <audio id="bgmAudio" loop="false"></audio>
+
+        <div class="music-control">
+            <button class="music-btn" id="playBtn" onclick="togglePlay()">🎵 唱！(´∀｀)♡</button>
+            <button class="music-btn" onclick="nextMusic()">⏭️ 换首歌(´∀｀)♡</button>
+        </div>
+
+        <div class="header">
+            <h1>❤️ 致最爱滴宝宝 ❤️</h1>
+            <div class="days">我们在一起 <span id="loveDays">0</span> 天啦～</div>
+        </div>
+
+        <!-- 照片轮播 -->
+        <div class="photo-carousel">
+            <div class="carousel-inner" id="carouselInner">
+                <div class="carousel-item">
+                    <img src="https://youke2.picui.cn/s1/2025/12/23/694a8462b3083.jpg" alt="和宝宝第一次约会">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://youke2.picui.cn/s1/2025/12/23/694a808296453.jpg" alt="和宝宝一起去海边">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://youke2.picui.cn/s1/2025/12/23/694a81c8caa67.jpg" alt="俩人去吃饭">
+                </div>
+            </div>
+            <button class="carousel-btn prev-btn" onclick="prevSlide()">←</button>
+            <button class="carousel-btn next-btn" onclick="nextSlide()">→</button>
+        </div>
+
+        <!-- 表白文案 -->
+        <div class="content">
+            <p>致紫啧小宝贝：</p>
+            <p>你的冰🧊给你搭建的独属我们哒情侣空间噢</p>
+            <p>祝宝宝生日快乐噢，永远开开心心，没有烦恼，最重要的是要永远永远爱我(・ε・)</p>
+        </div>
+
+        <!-- 留言板 -->
+        <div class="message-board">
+            <h2>💬 爱我的话记得多说些( ˘ ³˘)♥</h2>
+            <div class="message-input">
+                <input type="text" id="name" placeholder="ξ( ✿＞◡❛)">
+                <textarea id="content" placeholder="人家好想被紫啧的爱灌满呢(*´∀`)~♥！吖咪吖咪"></textarea>
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*,video/mp4" multiple onchange="handleFileSelect(this)">
+                    <div class="file-upload-text">📷 时间定格我们的那些瞬间（最多3个，视频≤50MB）</div>
+                    <div class="upload-tips">图片自动压缩，视频要先压缩后上传～</div>
+                </div>
+                <div class="preview-container" id="previewContainer"></div>
+                <button id="submitBtn" onclick="addMessage()">
+                    <span class="loading">⏳ 上传中...</span>
+                    You  Jump，I  Jump！
+                </button>
+            </div>
+            <div class="message-list" id="messageList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 核心配置
+        const MEET_DATE = "2025-05-01";  // 认识日期
+        const LOVE_DATE = "2025-05-16";  // 恋爱日期
+        // 修复：音乐列表数组添加缺失的逗号
+        const musicList = [
+            "https://upos-sz-estgcos.bilivideo.com/upgcxcode/94/69/1603976994/1603976994-1-192.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&platform=html5&mid=237748271&deadline=1766487971&os=estgcos&og=cos&trid=f73cf2eade8e4189b295a99c39e1057h&oi=0x240a42d84800166685944a6957386674&gen=playurlv3&upsig=340e44b05fdd5d95f44404fad02ad862&uparams=e,uipk,nbs,platform,mid,deadline,os,og,trid,oi,gen&bvc=vod&nettype=0&bw=295683&buvid=&build=0&dl=0&f=h_0_0&agrr=1&orderid=0,1",
+            "https://upos-sz-estgcos.bilivideo.com/upgcxcode/69/72/776947269/776947269-1-208.mp4?e=ig8euxZM2rNcNbhznwdVhwdlhzh3hwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&platform=html5&mid=237748271&trid=f86772e5c10b4e1eb051b0f44880cach&oi=0x240a42d84800166685944a6957386674&deadline=1766488004&nbs=1&uipk=5&gen=playurlv3&os=estgcos&og=cos&upsig=9226049067f8e44b95dce5d556fc4441&uparams=e,platform,mid,trid,oi,deadline,nbs,uipk,gen,os,og&bvc=vod&nettype=0&bw=2704058&agrr=1&buvid=&build=0&dl=0&f=h_0_0&orderid=0,1"
+        ];
+        let currentMusicIndex = 0;
+        const bgmAudio = document.getElementById('bgmAudio');
+        const playBtn = document.getElementById('playBtn');
+        let isMusicInited = false;
+        let uploadedFiles = [];
+        const MAX_FILES = 3;
+        const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
+
+        // 1. 验证逻辑
+        function checkCode() {
+            const meetDate = document.getElementById('meetDate').value;
+            const loveDate = document.getElementById('loveDate').value;
+            const tip = document.getElementById('verify-tip');
+            const verifyContainer = document.getElementById('verifyContainer');
+            const homeContainer = document.getElementById('homeContainer');
+
+            // 调试：打印输入的日期，方便排查
+            console.log('输入的认识日期：', meetDate);
+            console.log('输入的恋爱日期：', loveDate);
+            console.log('正确的认识日期：', MEET_DATE);
+            console.log('正确的恋爱日期：', LOVE_DATE);
+
+            if (!meetDate || !loveDate) {
+                tip.innerText = "答不对可是打不开的(#`皿´)";
+                tip.style.color = "#ff4500";
+                return;
+            }
+
+            if (meetDate === MEET_DATE && loveDate === LOVE_DATE) {
+                tip.innerText = "哼！不记得的话，我可是会生气的！(#`Д´)ﾉ";
+                tip.style.color = "#00ff00";
+                setTimeout(() => {
+                    verifyContainer.style.display = 'none';
+                    homeContainer.style.display = 'block';
+                    homeContainer.style.opacity = 1;
+                    initHome();
+                    initMusic();
+                    initMessageBoard();
+                }, 1000);
+            } else {
+                tip.innerText = "(#`Д´)ﾉ(#`Д´)ﾉ(#`Д´)ﾉ生气啦！❤️";
+                tip.style.color = "#ff4500";
+            }
+        }
+
+        // 2. 音乐播放逻辑
+        function initMusic() {
+            if (musicList.length === 0) {
+                playBtn.innerText = "🎵 哎呀，没歌了";
+                return;
+            }
+            bgmAudio.src = musicList[currentMusicIndex];
+            bgmAudio.load();
+
+            bgmAudio.play().then(() => {
+                isMusicInited = true;
+                playBtn.innerText = "🎵 Stop music(≧∀≦)ゞ";
+            }).catch(err => {
+                isMusicInited = false;
+                playBtn.innerText = "🎵 (◍•ᴗ•◍)ゝ三二一唱";
+            });
+
+            bgmAudio.addEventListener('ended', nextMusic);
+        }
+
+        function togglePlay() {
+            if (musicList.length === 0) {
+                alert("没歌啦Σヽ(ﾟД ﾟ; )ﾉ～");
+                return;
+            }
+            if (!isMusicInited) {
+                bgmAudio.play().then(() => {
+                    isMusicInited = true;
+                    playBtn.innerText = "🎵 Stop music(≧∀≦)ゞ";
+                }).catch(err => {
+                    alert("播放失败，请检查音乐链接是否有效～");
+                });
+                return;
+            }
+            if (bgmAudio.paused) {
+                bgmAudio.play();
+                playBtn.innerText = "🎵 Stop music(≧∀≦)ゞ";
+            } else {
+                bgmAudio.pause();
+                playBtn.innerText = "🎵 (◍•ᴗ•◍)ゝ三二一唱";
+            }
+        }
+
+        function nextMusic() {
+            if (musicList.length === 0) {
+                alert("没歌啦Σヽ(ﾟД ﾟ; )ﾉ～");
+                return;
+            }
+            currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+            bgmAudio.src = musicList[currentMusicIndex];
+            bgmAudio.load();
+            if (isMusicInited) {
+                bgmAudio.play();
+                playBtn.innerText = "🎵 Stop music(≧∀≦)ゞ";
+            }
+        }
+
+        // 3. 主页初始化
+        function initHome() {
+            // 计算恋爱天数
+            function calculateLoveDays() {
+                const loveDate = new Date(LOVE_DATE);
+                const today = new Date();
+                const days = Math.floor((today - loveDate) / (1000 * 60 * 60 * 24));
+                document.getElementById('loveDays').innerText = days;
+            }
+            calculateLoveDays();
+
+            // 动态爱心
+            document.addEventListener('click', (e) => {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.style.left = `${e.clientX - 10}px`;
+                heart.style.top = `${e.clientY - 10}px`;
+                const size = 20 + Math.random() * 20;
+                heart.style.width = `${size}px`;
+                heart.style.height = `${size}px`;
+                const colors = [
+                    'linear-gradient(45deg, #ffafcc, #f4acb7)',
+                    'linear-gradient(45deg, #ffe5ec, #ffcad4)',
+                    'linear-gradient(45deg, #f4acb7, #ff8fab)'
+                ];
+                heart.style.background = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 6000);
+            });
+
+            // 照片轮播
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.carousel-item');
+            const totalSlides = slides.length;
+
+            function goToSlide(index) {
+                if (index < 0) currentSlide = totalSlides - 1;
+                else if (index >= totalSlides) currentSlide = 0;
+                else currentSlide = index;
+                document.getElementById('carouselInner').style.transform = `translateX(-${currentSlide * 100}%)`;
+            }
+
+            window.prevSlide = function() { goToSlide(currentSlide - 1); };
+            window.nextSlide = function() { goToSlide(currentSlide + 1); };
+
+            setInterval(() => { goToSlide(currentSlide + 1); }, 8000);
+        }
+
+        // 4. 留言板逻辑
+        let db;
+        function initMessageBoard() {
+            const request = indexedDB.open('YiqiLoveMessageDB', 1);
+
+            request.onupgradeneeded = function(e) {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains('messages')) {
+                    db.createObjectStore('messages', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                loadMessages();
+            };
+
+            request.onerror = function(e) {
+                console.error('IndexedDB初始化失败:', e.target.error);
+                const savedMessages = localStorage.getItem('yiqiLoveMessages');
+                window.messages = savedMessages ? JSON.parse(savedMessages) : [];
+                renderMessages();
+            };
+        }
+
+        // 图片压缩
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    const maxWidth = 1080;
+                    const maxHeight = 1080;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth/width, maxHeight/height);
+                        width = width * ratio;
+                        height = height * ratio;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL(file.type, 0.8);
+                    callback({
+                        type: 'image',
+                        data: compressedDataUrl,
+                        name: file.name,
+                        size: Math.round(compressedDataUrl.length * 0.75 / 1024) + 'KB'
+                    });
+                };
+            };
+        }
+
+        // 处理文件选择
+        function handleFileSelect(input) {
+            const files = input.files;
+            if (files.length === 0) return;
+
+            if (uploadedFiles.length + files.length > MAX_FILES) {
+                alert(`有${MAX_FILES}上限的啦`);
+                input.value = '';
+                return;
+            }
+
+            const previewContainer = document.getElementById('previewContainer');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileIndex = uploadedFiles.length + i;
+
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.dataset.index = fileIndex;
+                previewItem.innerHTML = `<div class="preview-loading">稍等哦...</div>`;
+                previewContainer.appendChild(previewItem);
+
+                if (file.type.startsWith('video/')) {
+                    if (file.size > MAX_VIDEO_SIZE) {
+                        alert(`${file.name}超过50MB啦～请压缩后再上传❤️`);
+                        previewContainer.removeChild(previewItem);
+                        continue;
+                    }
+
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = function(e) {
+                        uploadedFiles.push({
+                            type: 'video',
+                            data: e.target.result,
+                            name: file.name,
+                            size: Math.round(file.size / 1024) + 'KB'
+                        });
+
+                        previewItem.innerHTML = `
+                            <video controls src="${e.target.result}" alt="${file.name}"></video>
+                            <button class="preview-remove" onclick="removePreview(${fileIndex})">×</button>
+                        `;
+                    };
+                } else if (file.type.startsWith('image/')) {
+                    compressImage(file, (compressedFile) => {
+                        uploadedFiles.push(compressedFile);
+
+                        previewItem.innerHTML = `
+                            <img src="${compressedFile.data}" alt="${file.name}">
+                            <button class="preview-remove" onclick="removePreview(${fileIndex})">×</button>
+                        `;
+                    });
+                }
+            }
+
+            input.value = '';
+        }
+
+        // 移除预览文件
+        function removePreview(index) {
+            uploadedFiles.splice(index, 1);
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+
+            uploadedFiles.forEach((file, newIndex) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.dataset.index = newIndex;
+
+                if (file.type === 'image') {
+                    previewItem.innerHTML = `
+                        <img src="${file.data}" alt="${file.name}">
+                        <button class="preview-remove" onclick="removePreview(${newIndex})">×</button>
+                    `;
+                } else {
+                    previewItem.innerHTML = `
+                        <video controls src="${file.data}" alt="${file.name}"></video>
+                        <button class="preview-remove" onclick="removePreview(${newIndex})">×</button>
+                    `;
+                }
+
+                previewContainer.appendChild(previewItem);
+            });
+        }
+
+        // 加载留言
+        function loadMessages() {
+            if (!db) {
+                renderMessages();
+                return;
+            }
+
+            const transaction = db.transaction(['messages'], 'readonly');
+            const store = transaction.objectStore('messages');
+            const request = store.getAll();
+
+            request.onsuccess = function(e) {
+                window.messages = e.target.result || [];
+                renderMessages();
+            };
+
+            request.onerror = function(e) {
+                console.error('啊咧怎么看不到啦(ﾟдﾟ):', e.target.error);
+                const savedMessages = localStorage.getItem('yiqiLoveMessages');
+                window.messages = savedMessages ? JSON.parse(savedMessages) : [];
+                renderMessages();
+            };
+        }
+
+        // 添加留言
+        window.addMessage = async function() {
+            const name = document.getElementById('name').value.trim() || '匿名';
+            const content = document.getElementById('content').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!content && uploadedFiles.length === 0) {
+                alert('夸我两句才行噢ヽ(●´ε｀●)ノ');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            const message = {
+                name: name,
+                content: content,
+                time: new Date().toLocaleString('zh-CN', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }),
+                files: [...uploadedFiles]
+            };
+
+            try {
+                if (db) {
+                    const transaction = db.transaction(['messages'], 'readwrite');
+                    const store = transaction.objectStore('messages');
+                    await new Promise((resolve, reject) => {
+                        const request = store.add(message);
+                        request.onsuccess = resolve;
+                        request.onerror = reject;
+                    });
+                } else {
+                    window.messages.push(message);
+                    localStorage.setItem('yiqiLoveMessages', JSON.stringify(window.messages));
+                }
+
+                loadMessages();
+
+                document.getElementById('name').value = '';
+                document.getElementById('content').value = '';
+                uploadedFiles = [];
+                document.getElementById('previewContainer').innerHTML = '';
+
+                alert('说的什么我看看٩(♡ε♡ )۶❤️');
+            } catch (err) {
+                console.error('不知道为啥失败啦( ºΔº ):', err);
+                alert('重试一下( ºωº )');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        };
+
+        // 渲染留言
+        function renderMessages() {
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+
+            if (!window.messages || window.messages.length === 0) {
+                messageList.innerHTML = '<div style="text-align:center; padding:20px; color:#e0e0e0; text-shadow:0 0 5px rgba(0,0,0,0.2);">暂无甜蜜留言，快来给宝宝写第一条吧～</div>';
+                return;
+            }
+
+            const reversedMessages = [...window.messages].reverse();
+
+            reversedMessages.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'message-item';
+
+                let fileHtml = '';
+                if (msg.files && msg.files.length > 0) {
+                    fileHtml = '<div class="message-file-container">';
+                    msg.files.forEach(file => {
+                        if (file.type === 'image') {
+                            fileHtml += `
+                                <div class="message-file-item">
+                                    <img src="${file.data}" alt="${file.name}" onclick="openPreview(this)">
+                                </div>
+                            `;
+                        } else {
+                            fileHtml += `
+                                <div class="message-file-item">
+                                    <video controls src="${file.data}" alt="${file.name}"></video>
+                                </div>
+                            `;
+                        }
+                    });
+                    fileHtml += '</div>';
+                }
+
+                item.innerHTML = `
+                    <div class="name">${msg.name}</div>
+                    <div class="time">${msg.time}</div>
+                    <div class="content">${msg.content || ''}</div>
+                    ${fileHtml}
+                `;
+
+                messageList.appendChild(item);
+            });
+        }
+
+        // 图片放大预览
+        function openPreview(img) {
+            const previewModal = document.createElement('div');
+            previewModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+                cursor: pointer;
+                backdrop-filter: blur(5px);
+            `;
+            previewModal.innerHTML = `<img src="${img.src}" style="max-width: 90%; max-height: 90%; border-radius: 10px; box-shadow:0 0 30px #ff8fab;">`;
+            previewModal.onclick = () => document.body.removeChild(previewModal);
+            document.body.appendChild(previewModal);
+        }
+    </script>
+</body>
+</html>
